@@ -3,8 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, accuracy_score
-import pickle
+from sklearn.metrics import classification_report
 
 # Load dataset
 @st.cache_data
@@ -33,30 +32,11 @@ def train_model(X_train_tfidf, y_train):
     model.fit(X_train_tfidf, y_train)
     return model
 
-# Predict with confidence scores
+# Predict
 def predict(model, vectorizer, input_text):
     input_tfidf = vectorizer.transform([input_text])
     prediction = model.predict(input_tfidf)
-    confidence = model.predict_proba(input_tfidf)[0]
-    return prediction[0], confidence
-
-# Evaluate the model
-def evaluate_model(model, X_test_tfidf, y_test):
-    y_pred = model.predict(X_test_tfidf)
-    accuracy = accuracy_score(y_test, y_pred)
-    report = classification_report(y_test, y_pred, target_names=['Fake', 'Real'])
-    return accuracy, report
-
-# Save model
-def save_model(model, vectorizer):
-    with open('model.pkl', 'wb') as f:
-        pickle.dump((model, vectorizer), f)
-
-# Load model
-def load_model():
-    with open('model.pkl', 'rb') as f:
-        model, vectorizer = pickle.load(f)
-    return model, vectorizer
+    return prediction[0]
 
 # Streamlit UI
 st.title('Fake News Detection System')
@@ -64,37 +44,16 @@ st.title('Fake News Detection System')
 # Load data
 df = load_data()
 
-# Display data sample
-if st.checkbox('Show data sample'):
-    st.write(df.head())
-
 # Preprocess data and train model
 X_train_tfidf, X_test_tfidf, y_train, y_test, vectorizer = preprocess_data(df)
 model = train_model(X_train_tfidf, y_train)
-
-# Model evaluation
-if st.checkbox('Evaluate model'):
-    accuracy, report = evaluate_model(model, X_test_tfidf, y_test)
-    st.write(f'Accuracy: {accuracy:.2f}')
-    st.text('Classification Report:')
-    st.text(report)
 
 # Get user input
 user_input = st.text_area("Enter a sentence to check if it's Real or Fake news:", "")
 
 if user_input:
-    prediction, confidence = predict(model, vectorizer, user_input)
+    prediction = predict(model, vectorizer, user_input)
     if prediction == 'real':
-        st.success(f"The news is likely Real! (Confidence: {confidence[1]:.2f})")
+        st.success("The news is likely Real!")
     else:
-        st.error(f"The news is likely Fake! (Confidence: {confidence[0]:.2f})")
-
-# Save model
-if st.button('Save Model'):
-    save_model(model, vectorizer)
-    st.success('Model saved successfully!')
-
-# Option to load saved model
-if st.button('Load Model'):
-    model, vectorizer = load_model()
-    st.success('Model loaded successfully!')
+        st.error("The news is likely Fake!")
