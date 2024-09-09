@@ -39,7 +39,7 @@ def predict(model, vectorizer, input_text):
     return prediction[0]
 
 # Streamlit UI
-st.title('Fake News Detection System')
+st.title('Ahaha System')
 
 # Load data
 df = load_data()
@@ -49,7 +49,7 @@ X_train_tfidf, X_test_tfidf, y_train, y_test, vectorizer = preprocess_data(df)
 model = train_model(X_train_tfidf, y_train)
 
 # Get user input
-user_input = st.text_area("Enter a sentence to check if it's Real or Fake news:", "")
+user_input = st.text_area("Enter a sentence:", "")
 
 if user_input:
     prediction = predict(model, vectorizer, user_input)
