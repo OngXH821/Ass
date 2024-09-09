@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report
 # Load dataset
 @st.cache_data
 def load_data():
-    df = pd.read_csv('english_test_with_labels.csv')  # Assume dataset has 'text' and 'sentiment' columns
+    df = pd.read_csv('sentiment_dataset.csv')  # Assume dataset has 'text' and 'sentiment' columns
     return df
 
 # Preprocess data
