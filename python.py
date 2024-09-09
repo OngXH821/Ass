@@ -3,7 +3,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
 
 # Load dataset
 @st.cache_data
@@ -36,14 +35,7 @@ def train_model(X_train_tfidf, y_train):
 def predict(model, vectorizer, input_text):
     input_tfidf = vectorizer.transform([input_text])
     prediction = model.predict(input_tfidf)
-    prediction_proba = model.predict_proba(input_tfidf)
-    return prediction[0], prediction_proba
-
-# Evaluate the model
-def evaluate_model(model, X_test_tfidf, y_test):
-    y_pred = model.predict(X_test_tfidf)
-    report = classification_report(y_test, y_pred, target_names=['Real', 'Fake'])
-    return report
+    return prediction[0]
 
 # Streamlit UI
 st.title('Fake News Detection System')
@@ -51,29 +43,20 @@ st.title('Fake News Detection System')
 # Load data
 df = load_data()
 
+# Show data sample
+if st.checkbox('Show data sample'):
+    st.write(df.head())
+
 # Preprocess data and train model
 X_train_tfidf, X_test_tfidf, y_train, y_test, vectorizer = preprocess_data(df)
 model = train_model(X_train_tfidf, y_train)
-
-# Display model evaluation report
-if st.checkbox("Show Model Evaluation"):
-    st.subheader("Model Evaluation on Test Data")
-    report = evaluate_model(model, X_test_tfidf, y_test)
-    st.text(report)
 
 # Get user input
 user_input = st.text_area("Enter a sentence to check if it's Real or Fake news:", "")
 
 if user_input:
-    prediction, prediction_proba = predict(model, vectorizer, user_input)
-    proba_real = prediction_proba[0][0]
-    proba_fake = prediction_proba[0][1]
-    
+    prediction = predict(model, vectorizer, user_input)
     if prediction == 'real':
-        st.success(f"The news is likely Real with a probability of {proba_real:.2f}!")
+        st.success("The news is likely Real!")
     else:
-        st.error(f"The news is likely Fake with a probability of {proba_fake:.2f}!")
-    
-    # Display probabilities
-    st.write(f"Real News Probability: {proba_real:.2f}")
-    st.write(f"Fake News Probability: {proba_fake:.2f}")
+        st.error("The news is likely Fake!")
